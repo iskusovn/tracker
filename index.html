@@ -1816,6 +1816,16 @@ function renderNutrition(selected) {
             onchange="updateConfig('targetCarbs', this.value)">
         </div>
       </div>
+      <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--separator)">
+        <div class="field">
+          <label class="field-label">Дата старта программы</label>
+          <input type="date" class="input" value="${t.startDate}"
+            onchange="updateStartDate(this.value)">
+          <div style="font-size:11px; color:var(--text-3); margin-top:6px; line-height:1.4">
+            Меняй если хочешь перезапустить отсчёт. История прошлых дней сохранится.
+          </div>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -2279,6 +2289,13 @@ window.updateField = function(date, field, value, type) {
 window.updateConfig = function(key, value) {
   state.config[key] = parseFloat(value) || 0;
   saveState(); render();
+};
+
+window.updateStartDate = function(value) {
+  if (!value) return;
+  state.config.startDate = value;
+  saveState();
+  render();
 };
 
 window.addWater = function(date, ml) {
