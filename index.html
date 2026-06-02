@@ -171,6 +171,12 @@ button { font-family: inherit; cursor: pointer; }
 }
 .exercise.done .checkbox::after { opacity: 1; }
 .exercise-text { flex: 1; font-size: 15px; letter-spacing: -0.01em; }
+.exercise-hint {
+  font-size: 12px; color: var(--text-3);
+  margin-top: 3px; line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+.exercise.done .exercise-hint { color: var(--text-3); opacity: 0.6; }
 
 .tip {
   background: var(--surface-2); border-radius: 10px;
@@ -451,6 +457,64 @@ button { font-family: inherit; cursor: pointer; }
 }
 .habit-stat-label { font-size: 11px; color: var(--text-2); margin-top: 2px; }
 .habit-list { max-height: 280px; overflow-y: auto; }
+
+/* MILESTONES */
+.milestone-next {
+  background: linear-gradient(135deg, rgba(52, 199, 89, 0.08), rgba(0, 122, 255, 0.06));
+  border-left: 3px solid var(--green);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.milestone-next-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--green); margin-bottom: 6px;
+}
+.milestone-next-text {
+  font-size: 14px; line-height: 1.45;
+  color: var(--text); letter-spacing: -0.005em;
+}
+.milestone-list {
+  position: relative;
+}
+.milestone {
+  display: flex; gap: 12px;
+  padding: 10px 0;
+  position: relative;
+}
+.milestone:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 5px; top: 24px; bottom: -2px;
+  width: 1px; background: var(--separator);
+}
+.milestone.done:not(:last-child)::before {
+  background: var(--green);
+  opacity: 0.4;
+}
+.milestone-dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1.5px solid var(--separator-strong);
+  flex-shrink: 0; margin-top: 4px;
+  position: relative; z-index: 1;
+}
+.milestone.done .milestone-dot {
+  background: var(--green);
+  border-color: var(--green);
+}
+.milestone-body { flex: 1; opacity: 0.5; }
+.milestone.done .milestone-body { opacity: 1; }
+.milestone-time {
+  font-size: 13px; font-weight: 600;
+  color: var(--text); letter-spacing: -0.005em;
+}
+.milestone-desc {
+  font-size: 12px; color: var(--text-2);
+  margin-top: 2px; line-height: 1.4;
+}
+.milestone.done .milestone-desc { color: var(--text-2); }
 .habit-entry {
   display: flex; justify-content: space-between; align-items: center;
   padding: 10px 4px; border-bottom: 1px solid var(--separator); font-size: 14px;
@@ -538,6 +602,13 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--text-3); margin: 16px 0 6px; padding: 0 4px;
 }
 .food-cat:first-child { margin-top: 0; }
+
+.search-row {
+  display: flex; gap: 8px; margin-bottom: 12px;
+  position: sticky; top: 56px; background: var(--bg);
+  padding: 6px 0; z-index: 5;
+}
+.search-input { flex: 1; }
 .food-item {
   display: flex; justify-content: space-between; align-items: center;
   padding: 12px 4px; border-bottom: 1px solid var(--separator);
@@ -690,12 +761,81 @@ const FOODS = [
   // 🥑 ОРЕХИ И МАСЛА
   { name: 'Орехи грецкие', kcal: 654, p: 15, f: 65, c: 14, per: 100, unit: 'г', cat: 'fats', match: ['орехи', 'грецкие орехи', 'грецкие'] },
   { name: 'Миндаль', kcal: 579, p: 21, f: 50, c: 22, per: 100, unit: 'г', cat: 'fats', match: ['миндаль'] },
+  { name: 'Кешью', kcal: 553, p: 18, f: 44, c: 30, per: 100, unit: 'г', cat: 'fats', match: ['кешью'] },
+  { name: 'Фундук', kcal: 628, p: 15, f: 61, c: 17, per: 100, unit: 'г', cat: 'fats', match: ['фундук', 'лесной орех'] },
+  { name: 'Арахис', kcal: 567, p: 26, f: 49, c: 16, per: 100, unit: 'г', cat: 'fats', match: ['арахис'] },
   { name: 'Оливковое масло', kcal: 120, p: 0, f: 14, c: 0, per: 1, unit: 'ст.л.', cat: 'fats', match: ['оливковое масло', 'масло', 'олив масло'] },
   { name: 'Сливочное масло', kcal: 102, p: 0.1, f: 11.5, c: 0, per: 1, unit: 'ст.л.', cat: 'fats', match: ['сливочное масло'] },
+  { name: 'Арахисовая паста', kcal: 588, p: 25, f: 50, c: 20, per: 100, unit: 'г', cat: 'fats', match: ['арахисовая паста', 'peanut butter'] },
+
+  // 🍗 МЯСО (расширение)
+  { name: 'Шницель куриный (жареный)', kcal: 220, p: 22, f: 12, c: 7, per: 100, unit: 'г', cat: 'meat', match: ['шницель куриный', 'шницель из курицы'] },
+  { name: 'Шницель свиной (жареный)', kcal: 280, p: 20, f: 20, c: 6, per: 100, unit: 'г', cat: 'meat', match: ['шницель', 'шницель свиной'] },
+  { name: 'Свинина (вырезка, готовая)', kcal: 210, p: 28, f: 11, c: 0, per: 100, unit: 'г', cat: 'meat', match: ['свинина', 'свиная вырезка'] },
+  { name: 'Говядина (постная, готовая)', kcal: 180, p: 30, f: 6, c: 0, per: 100, unit: 'г', cat: 'meat', match: ['говядина', 'говядина постная'] },
+  { name: 'Котлета домашняя', kcal: 220, p: 16, f: 14, c: 8, per: 100, unit: 'г', cat: 'meat', match: ['котлета', 'котлеты'] },
+  { name: 'Сосиски', kcal: 270, p: 11, f: 23, c: 3, per: 100, unit: 'г', cat: 'meat', match: ['сосиска', 'сосиски'] },
+  { name: 'Колбаса варёная (Докторская)', kcal: 257, p: 12, f: 22, c: 1.5, per: 100, unit: 'г', cat: 'meat', match: ['колбаса', 'докторская'] },
+  { name: 'Бекон (жареный)', kcal: 540, p: 37, f: 42, c: 1.4, per: 100, unit: 'г', cat: 'meat', match: ['бекон'] },
+  { name: 'Креветки варёные', kcal: 99, p: 24, f: 0.3, c: 0.2, per: 100, unit: 'г', cat: 'meat', match: ['креветки'] },
+
+  // 🥚 МОЛОЧКА (расширение)
+  { name: 'Сыр твёрдый 45%', kcal: 360, p: 25, f: 28, c: 0, per: 100, unit: 'г', cat: 'dairy', match: ['сыр', 'сыр твёрдый', 'российский', 'голландский', 'твёрдый сыр'] },
+  { name: 'Сыр Моцарелла', kcal: 280, p: 22, f: 22, c: 2.2, per: 100, unit: 'г', cat: 'dairy', match: ['моцарелла', 'mozzarella'] },
+  { name: 'Сыр Сулугуни', kcal: 290, p: 19, f: 24, c: 0.4, per: 100, unit: 'г', cat: 'dairy', match: ['сулугуни'] },
+  { name: 'Сыр Фета', kcal: 264, p: 14, f: 21, c: 4, per: 100, unit: 'г', cat: 'dairy', match: ['фета', 'feta'] },
+  { name: 'Сметана 20%', kcal: 206, p: 2.8, f: 20, c: 3.2, per: 100, unit: 'г', cat: 'dairy', match: ['сметана'] },
+  { name: 'Йогурт обычный 3.2%', kcal: 87, p: 4.3, f: 3.2, c: 8.5, per: 100, unit: 'г', cat: 'dairy', match: ['йогурт обычный', 'йогурт питьевой'] },
+  { name: 'Творожный сырок', kcal: 280, p: 8, f: 15, c: 30, per: 50, unit: 'шт', cat: 'dairy', match: ['сырок', 'творожный сырок', 'глазированный сырок'] },
+
+  // 🌾 КРУПЫ И ХЛЕБ (расширение)
+  { name: 'Картофель печёный', kcal: 93, p: 2.5, f: 0.1, c: 21, per: 100, unit: 'г', cat: 'grain', match: ['картофель печёный', 'картошка печёная', 'печёный картофель'] },
+  { name: 'Картофель жареный', kcal: 220, p: 2.8, f: 14, c: 23, per: 100, unit: 'г', cat: 'grain', match: ['картофель жареный', 'жареная картошка', 'картошка фри'] },
+  { name: 'Картофельное пюре', kcal: 88, p: 2, f: 3.3, c: 13, per: 100, unit: 'г', cat: 'grain', match: ['пюре', 'картофельное пюре'] },
+  { name: 'Макароны варёные', kcal: 175, p: 5.5, f: 0.9, c: 35, per: 100, unit: 'г', cat: 'grain', match: ['макароны', 'паста', 'спагетти'] },
+  { name: 'Хлеб белый', kcal: 265, p: 8, f: 3.2, c: 50, per: 100, unit: 'г', cat: 'grain', match: ['хлеб белый', 'батон', 'белый хлеб'] },
+  { name: 'Хлебцы (1 шт)', kcal: 30, p: 1.1, f: 0.3, c: 5.5, per: 1, unit: 'шт', cat: 'grain', match: ['хлебцы', 'хлебец'] },
+  { name: 'Лаваш тонкий', kcal: 270, p: 9, f: 1, c: 56, per: 100, unit: 'г', cat: 'grain', match: ['лаваш'] },
+  { name: 'Булгур варёный', kcal: 83, p: 3, f: 0.2, c: 19, per: 100, unit: 'г', cat: 'grain', match: ['булгур'] },
+  { name: 'Киноа варёная', kcal: 120, p: 4.4, f: 1.9, c: 21, per: 100, unit: 'г', cat: 'grain', match: ['киноа', 'квиноа'] },
+
+  // 🥬 ОВОЩИ (расширение)
+  { name: 'Капуста белокочанная', kcal: 25, p: 1.3, f: 0.1, c: 5.8, per: 100, unit: 'г', cat: 'veggies', match: ['капуста', 'белокочанная'] },
+  { name: 'Кабачок', kcal: 17, p: 1.2, f: 0.3, c: 3.1, per: 100, unit: 'г', cat: 'veggies', match: ['кабачок', 'цуккини'] },
+  { name: 'Баклажан', kcal: 25, p: 1, f: 0.2, c: 6, per: 100, unit: 'г', cat: 'veggies', match: ['баклажан'] },
+  { name: 'Лук репчатый', kcal: 41, p: 1.1, f: 0.1, c: 9.3, per: 100, unit: 'г', cat: 'veggies', match: ['лук', 'лук репчатый'] },
+  { name: 'Чеснок', kcal: 149, p: 6.4, f: 0.5, c: 30, per: 100, unit: 'г', cat: 'veggies', match: ['чеснок'] },
+  { name: 'Грибы (шампиньоны)', kcal: 22, p: 3.1, f: 0.3, c: 3.3, per: 100, unit: 'г', cat: 'veggies', match: ['грибы', 'шампиньоны'] },
+
+  // 🍎 ФРУКТЫ (расширение)
+  { name: 'Мандарин', kcal: 47, p: 0.8, f: 0.3, c: 12, per: 1, unit: 'шт', cat: 'fruits', match: ['мандарин', 'мандарины'] },
+  { name: 'Виноград', kcal: 67, p: 0.6, f: 0.4, c: 17, per: 100, unit: 'г', cat: 'fruits', match: ['виноград'] },
+  { name: 'Хурма', kcal: 67, p: 0.6, f: 0.2, c: 17, per: 1, unit: 'шт', cat: 'fruits', match: ['хурма'] },
+  { name: 'Манго', kcal: 60, p: 0.8, f: 0.4, c: 15, per: 100, unit: 'г', cat: 'fruits', match: ['манго'] },
+  { name: 'Арбуз', kcal: 30, p: 0.6, f: 0.2, c: 7.6, per: 100, unit: 'г', cat: 'fruits', match: ['арбуз'] },
+  { name: 'Финики', kcal: 277, p: 1.8, f: 0.2, c: 75, per: 100, unit: 'г', cat: 'fruits', match: ['финики'] },
+  { name: 'Курага', kcal: 241, p: 3.4, f: 0.5, c: 63, per: 100, unit: 'г', cat: 'fruits', match: ['курага'] },
+  { name: 'Изюм', kcal: 299, p: 3.1, f: 0.5, c: 79, per: 100, unit: 'г', cat: 'fruits', match: ['изюм'] },
 
   // ☕ НАПИТКИ И СЛАДКОЕ
   { name: 'Кофе чёрный', kcal: 2, p: 0.1, f: 0, c: 0, per: 200, unit: 'мл', cat: 'drinks', match: ['кофе', 'эспрессо', 'американо'] },
-  { name: 'Мёд', kcal: 21, p: 0, f: 0, c: 6, per: 1, unit: 'ч.л.', cat: 'drinks', match: ['мёд', 'мед'] }
+  { name: 'Кофе с молоком (капучино)', kcal: 60, p: 3, f: 3, c: 5, per: 200, unit: 'мл', cat: 'drinks', match: ['капучино', 'латте', 'кофе с молоком'] },
+  { name: 'Чай', kcal: 1, p: 0, f: 0, c: 0, per: 200, unit: 'мл', cat: 'drinks', match: ['чай'] },
+  { name: 'Сок апельсиновый', kcal: 45, p: 0.7, f: 0.2, c: 10, per: 100, unit: 'мл', cat: 'drinks', match: ['сок апельсиновый', 'апельсиновый сок'] },
+  { name: 'Кола / сладкая газировка', kcal: 42, p: 0, f: 0, c: 11, per: 100, unit: 'мл', cat: 'drinks', match: ['кола', 'газировка', 'спрайт', 'фанта'] },
+  { name: 'Пиво (5%)', kcal: 43, p: 0.5, f: 0, c: 3.6, per: 100, unit: 'мл', cat: 'drinks', match: ['пиво'] },
+  { name: 'Вино сухое (12%)', kcal: 70, p: 0.1, f: 0, c: 0.6, per: 100, unit: 'мл', cat: 'drinks', match: ['вино', 'вино сухое'] },
+  { name: 'Водка / крепкий алкоголь', kcal: 235, p: 0, f: 0, c: 0, per: 100, unit: 'мл', cat: 'drinks', match: ['водка', 'виски', 'коньяк', 'ром', 'джин', 'текила'] },
+  { name: 'Мёд', kcal: 21, p: 0, f: 0, c: 6, per: 1, unit: 'ч.л.', cat: 'drinks', match: ['мёд', 'мед'] },
+  { name: 'Сахар', kcal: 16, p: 0, f: 0, c: 4, per: 1, unit: 'ч.л.', cat: 'drinks', match: ['сахар'] },
+  { name: 'Шоколад горький 70%+', kcal: 540, p: 9, f: 36, c: 46, per: 100, unit: 'г', cat: 'drinks', match: ['шоколад горький', 'тёмный шоколад'] },
+  { name: 'Шоколад молочный', kcal: 535, p: 7.7, f: 30, c: 59, per: 100, unit: 'г', cat: 'drinks', match: ['шоколад', 'шоколад молочный'] },
+  { name: 'Печенье', kcal: 450, p: 6, f: 18, c: 65, per: 100, unit: 'г', cat: 'drinks', match: ['печенье', 'бисквит'] },
+  { name: 'Мороженое пломбир', kcal: 230, p: 3.6, f: 12, c: 27, per: 100, unit: 'г', cat: 'drinks', match: ['мороженое', 'пломбир'] },
+  { name: 'Пицца (кусок)', kcal: 270, p: 11, f: 10, c: 33, per: 100, unit: 'г', cat: 'drinks', match: ['пицца'] },
+  { name: 'Бургер', kcal: 290, p: 14, f: 16, c: 25, per: 100, unit: 'г', cat: 'drinks', match: ['бургер', 'гамбургер', 'чизбургер'] },
+  { name: 'Шаурма', kcal: 200, p: 11, f: 9, c: 18, per: 100, unit: 'г', cat: 'drinks', match: ['шаурма'] },
+  { name: 'Пельмени варёные', kcal: 240, p: 11, f: 9, c: 30, per: 100, unit: 'г', cat: 'drinks', match: ['пельмени'] }
 ];
 
 // Шаблоны быстрого добавления
@@ -780,7 +920,7 @@ const TEMPLATES = [
 
 let state = {
   config: {
-    startDate: '2026-05-28',
+    startDate: '2026-06-03',
     startWeight: 76,
     height: 178,
     targetDays: 30,
@@ -794,61 +934,233 @@ let state = {
   },
   logs: {},
   habits: { smoking: [], alcohol: [] },
+  customFoods: [],
   ui: { tab: 'workout', selectedDate: null, habitTab: 'smoking', modal: null }
 };
 
 const DAY_NAMES_FULL = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 const DAY_NAMES_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
+// Медицинские вехи восстановления — на основе данных WHO, NHS и Surgeon General Report
+const SMOKING_MILESTONES = [
+  { h: 0.014, t: '20 минут', d: 'Пульс возвращается к норме. Давление снижается.' },
+  { h: 8, t: '8 часов', d: 'Уровень угарного газа в крови падает вдвое. Кислород восстанавливается.' },
+  { h: 24, t: '1 день', d: 'CO выведен из крови полностью. Риск инфаркта начинает снижаться.' },
+  { h: 48, t: '2 дня', d: 'Восстанавливается обоняние и вкус. Никотин выведен из организма.' },
+  { h: 72, t: '3 дня', d: 'Бронхи расслабляются — дышать заметно легче. Энергия повышается. Пик никотиновой ломки.' },
+  { h: 168, t: '1 неделя', d: 'Тяга снижается. Сон становится глубже. Кожа выглядит лучше.' },
+  { h: 336, t: '2 недели', d: 'Кровообращение улучшается. Тренировки даются легче.' },
+  { h: 720, t: '1 месяц', d: 'Лёгкие работают на 10% эффективнее. Кашель проходит. Реснички бронхов восстанавливаются.' },
+  { h: 2160, t: '3 месяца', d: 'Лёгочная функция выросла на 30%. Иммунитет окреп. Уменьшается одышка.' },
+  { h: 6480, t: '9 месяцев', d: 'Кашель курильщика и одышка практически исчезли. Энергия как у некурящего.' },
+  { h: 8760, t: '1 год', d: 'Риск ишемической болезни сердца снижается вдвое.' },
+  { h: 43800, t: '5 лет', d: 'Риск инсульта — как у никогда не курившего человека.' }
+];
+
+const ALCOHOL_MILESTONES = [
+  { h: 24, t: '1 день', d: 'Восстанавливается гидратация. Сахар в крови стабилизируется.' },
+  { h: 48, t: '2 дня', d: 'Сон становится глубже. Уменьшается воспаление в желудке.' },
+  { h: 72, t: '3 дня', d: 'Печень начинает регенерацию. Может быть пик тяги и раздражительности.' },
+  { h: 168, t: '1 неделя', d: 'Качество сна заметно улучшается. Кожа становится менее обезвоженной. Уходят круги под глазами.' },
+  { h: 336, t: '2 недели', d: 'Снижается давление. Печень продолжает чиститься. Желудок и пищеварение работают лучше.' },
+  { h: 504, t: '3 недели', d: 'Холестерин снижается. Сахар крови нормализуется.' },
+  { h: 720, t: '1 месяц', d: 'Печень в значительной мере восстановилась (если не было цирроза). Тестостерон у мужчин повышается. Чувствительность к инсулину улучшается. Минус 1-3 кг жира — без других усилий.' },
+  { h: 2160, t: '3 месяца', d: 'Значительная регенерация печени. Кровяное давление в норме. Иммунитет окреп.' },
+  { h: 4320, t: '6 месяцев', d: 'Риск ряда онкологий снижается. Когнитивные функции восстановлены.' },
+  { h: 8760, t: '1 год', d: 'Риск болезней сердца снижается на ~40%. Печень полностью регенерировала.' }
+];
+
+function getMilestoneStatus(daysWithout, milestones) {
+  const hours = daysWithout * 24;
+  let current = null;
+  let next = null;
+  let achieved = [];
+  for (const m of milestones) {
+    if (hours >= m.h) {
+      achieved.push(m);
+      current = m;
+    } else if (!next) {
+      next = m;
+    }
+  }
+  return { achieved, current, next };
+}
+
+function renderMilestones(daysWithout, milestones) {
+  const { achieved, next } = getMilestoneStatus(daysWithout, milestones);
+  return `
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Что происходит с организмом</div>
+        <div class="card-meta">медицинские данные</div>
+      </div>
+      ${next ? `
+        <div class="milestone-next">
+          <div class="milestone-next-label">Следующая веха · ${escapeHtml(next.t)}</div>
+          <div class="milestone-next-text">${escapeHtml(next.d)}</div>
+        </div>
+      ` : ''}
+      <div class="milestone-list">
+        ${milestones.map(m => {
+          const done = achieved.includes(m);
+          return `
+            <div class="milestone ${done ? 'done' : ''}">
+              <div class="milestone-dot"></div>
+              <div class="milestone-body">
+                <div class="milestone-time">${escapeHtml(m.t)}</div>
+                <div class="milestone-desc">${escapeHtml(m.d)}</div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// Каждое упражнение: { t: текст, h: короткая подсказка по технике }
 const WORKOUTS = {
-  1: { name: 'Грудь · Плечи · Трицепс', tip: 'Главная задача — техника и максимальная амплитуда. Отжимания делать с касанием груди пола.',
+  1: { name: 'Грудь · Плечи · Трицепс', tip: 'Главное — техника и максимальная амплитуда. Отжимания делать с касанием груди пола.',
     blocks: {
-      'Утро': ['Бег 2–3 км в свободном темпе', 'Подтягивания: 3 подхода × максимум (если 0 — негативы 3×5: запрыгнул, медленно опустился за 5 сек)'],
-      'День · 15 мин': ['Планка 3 × 45 сек', 'Бёрпи 3 × 10', 'Прыжки/скакалка 3 × 60 сек'],
-      'Вечер · 45 мин': ['Отжимания: 4 × максимум', 'Жим гантелей лёжа: 4 × 12', 'Жим гантелей стоя (армейский): 4 × 12', 'Разводка гантелей лёжа: 3 × 15', 'Французский жим лёжа двумя руками: 3 × 12', 'Отжимания узким хватом (трицепс): 3 × максимум', 'Заминка/растяжка груди и плеч: 5 мин']
+      'Утро': [
+        { t: 'Бег 2–3 км в свободном темпе', h: 'Лёгкий темп — должен мочь говорить на бегу. Это разминка, не гонка.' },
+        { t: 'Подтягивания: 3 × максимум', h: 'Хват чуть шире плеч. Если 0 раз — негативы: запрыгни и опускайся 5 секунд, 3×5.' }
+      ],
+      'День · 15 мин': [
+        { t: 'Планка 3 × 45 сек', h: 'Локти под плечами, спина прямая, таз не провисает. Дыши спокойно.' },
+        { t: 'Бёрпи 3 × 10', h: 'Присед → планка → отжимание → вернуться → выпрыгнуть. Без отжимания если устал.' },
+        { t: 'Прыжки/скакалка 3 × 60 сек', h: 'Если есть скакалка — на ней. Если нет — прыжки на месте с мягким приземлением.' }
+      ],
+      'Вечер · 45 мин': [
+        { t: 'Отжимания: 4 × максимум', h: 'Грудь касается пола, локти под 45° к телу. Тело прямое — таз не провисает.' },
+        { t: 'Жим гантелей лёжа: 4 × 12', h: 'Лежа на полу или скамье. Опускай гантели до уровня груди, выжимай плавно.' },
+        { t: 'Жим гантелей стоя (армейский): 4 × 12', h: 'Гантели на уровне плеч. Выжми над головой, локти полностью разогнуты.' },
+        { t: 'Разводка гантелей лёжа: 3 × 15', h: 'Руки чуть согнуты в локтях, разводи широко в стороны, чувствуй грудь.' },
+        { t: 'Французский жим лёжа двумя руками: 3 × 12', h: 'Гантели над головой, опускай за голову, разгибай только локти.' },
+        { t: 'Отжимания узким хватом (трицепс): 3 × максимум', h: 'Кисти рядом, локти прижаты к корпусу — нагрузка на трицепс.' },
+        { t: 'Заминка/растяжка груди и плеч: 5 мин', h: 'Прижмись грудью к стене, потяни плечи и грудные мышцы.' }
+      ]
     }
   },
-  2: { name: 'Спина · Бицепс', tip: 'Турник — твой главный инструмент роста. Каждая тренировка — попытка побить вчерашний максимум.',
+  2: { name: 'Спина · Бицепс', tip: 'Турник — главный инструмент роста. Каждая тренировка — попытка побить вчерашний максимум.',
     blocks: {
-      'Утро': ['Бег 2–3 км', 'Подтягивания: 3 подхода × максимум'],
-      'День · 15 мин': ['Подъём ног в висе или лёжа: 3 × 15', 'Скручивания: 3 × 20', 'Велосипед: 3 × 30 сек'],
-      'Вечер · 45 мин': ['Подтягивания: 4 подхода × максимум', 'Тяга гантели в наклоне (1 рукой, упор): 4 × 12 на каждую', 'Тяга двух гантелей в наклоне: 4 × 12', 'Шраги с гантелями: 3 × 15', 'Сгибания на бицепс стоя: 4 × 12', 'Молотки: 3 × 12', 'Концентрированные сгибания (сидя): 3 × 10 на руку', 'Растяжка спины: 5 мин']
+      'Утро': [
+        { t: 'Бег 2–3 км', h: 'Свободный темп, аэробная зона. После — пара минут ходьбы.' },
+        { t: 'Подтягивания: 3 × максимум', h: 'Прямой хват. Полностью выпрямленные руки внизу — амплитуда важна.' }
+      ],
+      'День · 15 мин': [
+        { t: 'Подъём ног в висе или лёжа: 3 × 15', h: 'В висе — поднимай до 90°. Лёжа — ноги не касаются пола внизу.' },
+        { t: 'Скручивания: 3 × 20', h: 'Скручивайся, не поднимай спину. Подбородок не прижимай к груди.' },
+        { t: 'Велосипед: 3 × 30 сек', h: 'Лёжа. Локоть к противоположному колену поочерёдно. Темп быстрый.' }
+      ],
+      'Вечер · 45 мин': [
+        { t: 'Подтягивания: 4 × максимум', h: 'Между подходами — отдых 90 сек. Считай каждое чистое повторение.' },
+        { t: 'Тяга гантели в наклоне (1 рукой): 4 × 12 на каждую', h: 'Упор колено+рука на скамью/стул. Тяни к боку, лопатка сходится.' },
+        { t: 'Тяга двух гантелей в наклоне: 4 × 12', h: 'Наклон 45°, спина прямая. Тяни к низу живота, локти вдоль тела.' },
+        { t: 'Шраги с гантелями: 3 × 15', h: 'Гантели в опущенных руках. Поднимай плечи к ушам, без поворотов.' },
+        { t: 'Сгибания на бицепс стоя: 4 × 12', h: 'Локти зафиксируй у тела. Не раскачивайся, поднимай только предплечьем.' },
+        { t: 'Молотки: 3 × 12', h: 'То же, но хват нейтральный (ладонями друг к другу). Прорабатывает плечевую.' },
+        { t: 'Концентрированные сгибания (сидя): 3 × 10 на руку', h: 'Сидя, локоть упирается в бедро. Изолированная нагрузка на бицепс.' },
+        { t: 'Растяжка спины: 5 мин', h: 'Поза кошки, скручивания лёжа. Расслабь поясницу.' }
+      ]
     }
   },
-  3: { name: 'Бассейн или Восстановление + Кор', tip: 'Бассейн пока откладываем. Активное восстановление = лёгкий бег + кор + растяжка.',
+  3: { name: 'Бассейн или Восстановление + Кор', tip: 'Бассейн пока опционально. Если без него — активное восстановление: лёгкий бег + кор.',
     blocks: {
-      'Утро': ['Бег 3 км (свободный темп)'],
-      'Бассейн (когда возобновишь)': ['Свободный стиль / брасс — 30–45 мин'],
-      'Альтернатива · 30 мин кор': ['Планка 3 × 60 сек', 'Боковая планка 3 × 30 сек на каждую сторону', 'Подъём ног лёжа 3 × 15', 'Скручивания 3 × 20', 'Mountain climbers 3 × 30 сек', 'Russian twists с гантелью 3 × 20'],
-      'Растяжка · 10 мин': ['Растяжка всего тела']
+      'Утро': [
+        { t: 'Бег 3 км (свободный темп)', h: 'Восстановительный темп, не быстро. После тяжёлой вчерашней тренировки.' }
+      ],
+      'Бассейн (опционально)': [
+        { t: 'Свободный стиль / брасс — 30–45 мин', h: 'Если идёшь — переменная интенсивность: спокойно 100м, быстро 50м, повтор.' }
+      ],
+      'Альтернатива · 30 мин кор': [
+        { t: 'Планка 3 × 60 сек', h: 'Если 60 сек тяжело — начни с 30 и наращивай.' },
+        { t: 'Боковая планка 3 × 30 сек на каждую сторону', h: 'Локоть под плечом, тело прямое. Бедро не провисает.' },
+        { t: 'Подъём ног лёжа 3 × 15', h: 'Поясницу прижми к полу. Опускай медленно, не бросай.' },
+        { t: 'Скручивания 3 × 20', h: 'Короткое движение, отрывай только лопатки.' },
+        { t: 'Mountain climbers 3 × 30 сек', h: 'Из планки — поочерёдно подтягивай колени к груди в быстром темпе.' },
+        { t: 'Russian twists с гантелью 3 × 20', h: 'Сидя, ноги приподняты. Поворачивай корпус с гантелью из стороны в сторону.' }
+      ],
+      'Растяжка · 10 мин': [
+        { t: 'Растяжка всего тела', h: 'Каждое положение держи 30-60 сек. Без рывков, дыши глубоко.' }
+      ]
     }
   },
-  4: { name: 'Ноги', tip: 'С гантелями 7 кг ноги нагрузить сложно — компенсируем объёмом, темпом и одноногими движениями.',
+  4: { name: 'Ноги', tip: 'С гантелями 7 кг компенсируем объёмом, темпом и одноногими движениями.',
     blocks: {
-      'Утро': ['Бег 2 км (лёгкий темп)', 'Подтягивания: 2 × максимум'],
-      'День · 15 мин': ['Динамическая разминка ног', 'Прыжки на месте 3 × 30 сек', 'Воздушные приседания 3 × 20'],
-      'Вечер · 45 мин': ['Гоблет-приседания: 4 × 15', 'Выпады с гантелями на месте: 4 × 12 на каждую', 'Болгарские приседания: 3 × 10 на каждую', 'Румынская тяга с гантелями: 4 × 12', 'Подъём на носки с гантелями: 4 × 20', 'Махи гантелью (свинги): 4 × 15', 'Растяжка ног и поясницы: 5 мин']
+      'Утро': [
+        { t: 'Бег 2 км (лёгкий темп)', h: 'Беречь ноги к вечерней тренировке. Это не нагрузка, это разминка.' },
+        { t: 'Подтягивания: 2 × максимум', h: 'Меньше чем обычно — ноги сегодня в приоритете.' }
+      ],
+      'День · 15 мин': [
+        { t: 'Динамическая разминка ног', h: 'Махи ногами, круговые вращения тазом, выпады с разворотом.' },
+        { t: 'Прыжки на месте 3 × 30 сек', h: 'С подтягиванием коленей к груди. Мягкое приземление.' },
+        { t: 'Воздушные приседания 3 × 20', h: 'Без веса. Глубокий присед, колени за носки не уходят.' }
+      ],
+      'Вечер · 45 мин': [
+        { t: 'Гоблет-приседания: 4 × 15', h: 'Одна гантель у груди двумя руками. Опускайся ниже параллели.' },
+        { t: 'Выпады с гантелями на месте: 4 × 12 на ногу', h: 'Шаг вперёд, заднее колено почти касается пола. Спина прямая.' },
+        { t: 'Болгарские приседания: 3 × 10 на ногу', h: 'Задняя нога на стуле/диване. Передняя делает всю работу.' },
+        { t: 'Румынская тяга с гантелями: 4 × 12', h: 'Колени чуть согнуты, наклоняйся вперёд с прямой спиной, чувствуй заднюю поверхность бедра.' },
+        { t: 'Подъём на носки с гантелями: 4 × 20', h: 'Гантели в руках, поднимайся на носки максимально высоко.' },
+        { t: 'Махи гантелью (свинги): 4 × 15', h: 'Одна гантель двумя руками. Махи между ног и до уровня груди, тянет таз.' },
+        { t: 'Растяжка ног и поясницы: 5 мин', h: 'Тяни квадрицепсы, бицепс бедра, ягодицы. Поясница в безопасном растяжении.' }
+      ]
     }
   },
-  5: { name: 'Грудь · Плечи (вариация)', tip: 'Медленный негатив = 3 сек на опускание. Ключ к гипертрофии при лёгких весах.',
+  5: { name: 'Грудь · Плечи (вариация)', tip: 'Медленный негатив = 3 сек на опускание. Это ключ к гипертрофии при лёгких весах.',
     blocks: {
-      'Утро': ['Бег 2–3 км', 'Подтягивания: 3 × максимум'],
-      'День · 15 мин': ['Планка 3 × 45 сек', 'Mountain climbers 3 × 30 сек'],
-      'Вечер · 45 мин': ['Отжимания с медленным негативом (3 сек вниз): 4 × максимум', 'Жим гантелей под углом: 4 × 12', 'Pike push-ups (отжимания «уголок»): 3 × 10', 'Махи гантелями в стороны: 4 × 15', 'Махи гантелями вперёд: 3 × 12', 'Кикбэк гантелью: 3 × 12 на руку', 'Отжимания «алмазом»: 3 × максимум']
+      'Утро': [
+        { t: 'Бег 2–3 км', h: 'Можешь добавить интервалы: 1 мин быстро / 2 мин медленно.' },
+        { t: 'Подтягивания: 3 × максимум', h: 'Старайся побить вчерашний результат хотя бы на 1 повторение.' }
+      ],
+      'День · 15 мин': [
+        { t: 'Планка 3 × 45 сек', h: 'Контролируй дыхание — оно не должно сбиваться.' },
+        { t: 'Mountain climbers 3 × 30 сек', h: 'Быстрый темп, но без потери техники в планке.' }
+      ],
+      'Вечер · 45 мин': [
+        { t: 'Отжимания с медленным негативом (3 сек вниз): 4 × максимум', h: 'Опускайся 3 секунды, считай вслух. Вверх — быстро.' },
+        { t: 'Жим гантелей под углом: 4 × 12', h: 'Спиной на подушки/диван под углом 30-45°. Прорабатывает верх груди.' },
+        { t: 'Pike push-ups (отжимания «уголок»): 3 × 10', h: 'Таз вверх, отжимайся головой вниз — нагрузка на плечи.' },
+        { t: 'Махи гантелями в стороны: 4 × 15', h: 'Чуть согнутые локти. Поднимай до уровня плеч, не выше.' },
+        { t: 'Махи гантелями вперёд: 3 × 12', h: 'Поднимай прямые руки перед собой до уровня плеч.' },
+        { t: 'Кикбэк гантелью: 3 × 12 на руку', h: 'Наклон, локоть прижат к боку. Разгибай только предплечье назад.' },
+        { t: 'Отжимания «алмазом»: 3 × максимум', h: 'Кисти образуют ромб. Узкий хват — максимум на трицепс.' }
+      ]
     }
   },
   6: { name: 'Бассейн или Спина (вариация)', tip: 'Альтернатива бассейну — день максимального вытягивания.',
     blocks: {
-      'Утро': ['Бег 3 км'],
-      'Бассейн (когда возобновишь)': ['Свободный стиль / брасс — 30–45 мин'],
-      'Альтернатива · 35 мин': ['Подтягивания обратным хватом: 4 × максимум', 'Тяга гантели одной рукой: 4 × 12 на каждую', 'Reverse fly: 4 × 12', 'Сгибания обратным хватом: 3 × 12', 'Молотки: 3 × 12', 'Кор: подъём ног 3 × 15, планка 2 × 60 сек']
+      'Утро': [
+        { t: 'Бег 3 км', h: 'Можно ускорения по 100м в конце для контрастной нагрузки.' }
+      ],
+      'Бассейн (опционально)': [
+        { t: 'Свободный стиль / брасс — 30–45 мин', h: 'Если плывёшь — фокус на технику дыхания и длину гребка.' }
+      ],
+      'Альтернатива · 35 мин': [
+        { t: 'Подтягивания обратным хватом: 4 × максимум', h: 'Ладони к себе. Сильнее работает бицепс, легче чем прямой.' },
+        { t: 'Тяга гантели одной рукой: 4 × 12 на руку', h: 'Упор на стул/диван. Тяни строго назад, лопатка сходится к позвоночнику.' },
+        { t: 'Reverse fly (разводка для задней дельты): 4 × 12', h: 'Наклон 45°, разводи гантели в стороны с почти прямыми руками.' },
+        { t: 'Сгибания обратным хватом: 3 × 12', h: 'Ладони от себя. Прорабатывает плечевую мышцу и предплечье.' },
+        { t: 'Молотки: 3 × 12', h: 'Нейтральный хват, поднимай гантели как молотки.' },
+        { t: 'Кор: подъём ног 3 × 15, планка 2 × 60 сек', h: 'Финиш сессии. Подними ноги до 90°, потом удерживай планку.' }
+      ]
     }
   },
   0: { name: 'Активное восстановление', tip: 'День восстановления = база следующей недели. Длинный бег в зоне 2 + растяжка.',
     blocks: {
-      'Утро · Кардио': ['Длинный лёгкий бег 4–5 км или быстрая ходьба 60 мин'],
-      'Растяжка · 20 мин': ['Растяжка ног', 'Растяжка спины', 'Растяжка груди и плеч'],
-      'Опционально': ['Тестовый замер подтягиваний: 1 × максимум', 'Тестовый замер отжиманий: 1 × максимум']
+      'Утро · Кардио': [
+        { t: 'Длинный лёгкий бег 4–5 км или быстрая ходьба 60 мин', h: 'Темп — можешь свободно разговаривать. Это сжигает жир, не утомляя ЦНС.' }
+      ],
+      'Растяжка · 20 мин': [
+        { t: 'Растяжка ног (бицепс бедра, квадрицепс, икры)', h: 'Каждая мышца 30-60 сек, без боли. Тянись на выдохе.' },
+        { t: 'Растяжка спины', h: 'Поза кошки, скрутки лёжа, висы на турнике если есть.' },
+        { t: 'Растяжка груди и плеч', h: 'Открой грудь — руки сцепи за спиной и подними. Растяни плечи у стены.' }
+      ],
+      'Опционально': [
+        { t: 'Тестовый замер подтягиваний: 1 × максимум', h: 'Запиши результат — это бенчмарк для следующей недели.' },
+        { t: 'Тестовый замер отжиманий: 1 × максимум', h: 'Тоже бенчмарк. Замеряй раз в неделю — увидишь прогресс.' }
+      ]
     }
   }
 };
@@ -885,16 +1197,17 @@ function round(n, d=0) {
 function findFood(text) {
   if (!text) return null;
   text = text.toLowerCase().trim();
+  const all = getAllFoods();
   // Сначала точное совпадение
-  for (const f of FOODS) {
+  for (const f of all) {
     if (f.name.toLowerCase() === text) return f;
-    for (const m of f.match) {
+    for (const m of (f.match || [])) {
       if (m === text) return f;
     }
   }
   // Потом подстрока
-  for (const f of FOODS) {
-    for (const m of f.match) {
+  for (const f of all) {
+    for (const m of (f.match || [])) {
       if (text.includes(m) || m.includes(text)) return f;
     }
   }
@@ -961,6 +1274,7 @@ function loadState() {
       state.config = { ...state.config, ...(saved.config || {}) };
       state.logs = saved.logs || {};
       state.habits = { smoking: [], alcohol: [], ...(saved.habits || {}) };
+      state.customFoods = saved.customFoods || [];
     }
   } catch (e) {}
 }
@@ -970,19 +1284,26 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       config: state.config,
       logs: state.logs,
-      habits: state.habits
+      habits: state.habits,
+      customFoods: state.customFoods
     }));
   } catch (e) {}
+}
+
+function getAllFoods() {
+  // Кастомные продукты идут в начало для удобства
+  return [...(state.customFoods || []).map(f => ({...f, custom: true})), ...FOODS];
 }
 
 // ===== HELPERS =====
 function getLog(date) {
   if (!state.logs[date]) {
-    state.logs[date] = { exercises: {}, weight: null, pullups: null, notes: '', meals: [], water: 0, steps: null };
+    state.logs[date] = { exercises: {}, weight: null, pullups: null, notes: '', meals: [], water: 0, steps: null, swim: null };
   }
   if (!state.logs[date].meals) state.logs[date].meals = [];
   if (state.logs[date].water == null) state.logs[date].water = 0;
   if (state.logs[date].steps === undefined) state.logs[date].steps = null;
+  if (state.logs[date].swim === undefined) state.logs[date].swim = null;
   return state.logs[date];
 }
 
@@ -1180,10 +1501,15 @@ function renderWorkout(selected) {
       ${exs.map(ex => {
         const id = `ex_${exerciseIdx++}`;
         const done = !!log.exercises[id];
+        const text = typeof ex === 'string' ? ex : ex.t;
+        const hint = typeof ex === 'string' ? '' : (ex.h || '');
         return `
           <div class="exercise ${done ? 'done' : ''}" onclick="toggleExercise('${selected}', '${id}')">
             <div class="checkbox"></div>
-            <div class="exercise-text">${escapeHtml(ex)}</div>
+            <div class="exercise-text">
+              <div>${escapeHtml(text)}</div>
+              ${hint ? `<div class="exercise-hint">${escapeHtml(hint)}</div>` : ''}
+            </div>
           </div>
         `;
       }).join('')}
@@ -1199,12 +1525,12 @@ function renderWorkout(selected) {
       </div>
       <div class="stat">
         <div class="stat-label">Вес</div>
-        <div class="stat-value">${currentWeight}<span class="stat-unit">кг</span></div>
-        <div class="stat-delta ${weightDelta < 0 ? 'pos' : weightDelta > 0 ? 'neg' : ''}">${weightDelta === 0 ? '—' : (weightDelta > 0 ? '+' : '') + weightDelta.toFixed(1) + ' кг'}</div>
+        <div class="stat-value"><span id="stat-weight-val">${currentWeight}</span><span class="stat-unit">кг</span></div>
+        <div id="stat-weight-delta" class="stat-delta ${weightDelta < 0 ? 'pos' : weightDelta > 0 ? 'neg' : ''}">${weightDelta === 0 ? '—' : (weightDelta > 0 ? '+' : '') + weightDelta.toFixed(1) + ' кг'}</div>
       </div>
       <div class="stat">
         <div class="stat-label">Турник</div>
-        <div class="stat-value">${maxPullups}<span class="stat-unit">макс</span></div>
+        <div class="stat-value"><span id="stat-pullups-val">${maxPullups}</span><span class="stat-unit">макс</span></div>
         <div class="stat-delta">цель: ${state.config.targetPullups}</div>
       </div>
     </div>
@@ -1277,10 +1603,9 @@ function renderWorkout(selected) {
 function renderActivityCard(selected) {
   const log = getLog(selected);
   const t = state.config;
-  const water = log.water || 0;
   const steps = log.steps || 0;
+  const swim = log.swim || 0;
   const burned = getBurnedCalories(selected);
-  const waterPct = Math.min(100, Math.round((water / t.targetWater) * 100));
   const stepsPct = Math.min(100, Math.round((steps / t.targetSteps) * 100));
 
   return `
@@ -1306,15 +1631,14 @@ function renderActivityCard(selected) {
 
       <div class="act-row">
         <div class="act-row-head">
-          <div class="act-label">Вода</div>
-          <div class="act-value">${water} <span class="target">/ ${t.targetWater} мл</span></div>
+          <div class="act-label">Бассейн</div>
+          <div class="act-value">${swim ? swim.toLocaleString('ru-RU') + ' м' : '<span style="color:var(--text-3); font-weight:400">опционально</span>'}</div>
         </div>
-        <div class="act-bar"><div class="act-bar-fill" style="width:${waterPct}%; background:var(--blue)"></div></div>
         <div class="act-controls">
-          <button class="act-btn" onclick="addWater('${selected}', 250)">+ 250 мл</button>
-          <button class="act-btn" onclick="addWater('${selected}', 500)">+ 500 мл</button>
-          <button class="act-btn" onclick="addWater('${selected}', 1000)">+ 1 л</button>
-          <button class="act-btn danger" onclick="resetWater('${selected}')">↺</button>
+          <input type="number" inputmode="numeric" class="act-input-inline" placeholder="метры"
+            value="${swim || ''}" onchange="updateField('${selected}', 'swim', this.value, 'int')">
+          <button class="act-btn" onclick="addSwim('${selected}', 500)">+ 500 м</button>
+          <button class="act-btn" onclick="addSwim('${selected}', 1000)">+ 1 км</button>
         </div>
       </div>
 
@@ -1444,6 +1768,26 @@ function renderNutrition(selected) {
       `;}).join('')}
     </div>
 
+    ${(() => {
+      const water = log.water || 0;
+      const waterPct = Math.min(100, Math.round((water / t.targetWater) * 100));
+      return `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">💧 Вода</div>
+          <div class="card-meta">${water} / ${t.targetWater} мл</div>
+        </div>
+        <div class="act-bar" style="margin-bottom:12px"><div class="act-bar-fill" style="width:${waterPct}%; background:var(--blue)"></div></div>
+        <div class="act-controls">
+          <button class="act-btn" onclick="addWater('${selected}', 250)">+ 250 мл</button>
+          <button class="act-btn" onclick="addWater('${selected}', 500)">+ 500 мл</button>
+          <button class="act-btn" onclick="addWater('${selected}', 1000)">+ 1 л</button>
+          <button class="act-btn danger" onclick="resetWater('${selected}')">↺ сброс</button>
+        </div>
+      </div>
+      `;
+    })()}
+
     <div class="card">
       <div class="card-head">
         <div class="card-title">Цели КБЖУ</div>
@@ -1533,6 +1877,8 @@ function renderSmoking() {
       ${todayCount > 0 ? `<button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="undoSmoking()">Отменить последнюю (-1)</button>` : ''}
     </div>
 
+    ${renderMilestones(daysWithout, SMOKING_MILESTONES)}
+
     <div class="card">
       <div class="card-head">
         <div class="card-title">История</div>
@@ -1586,6 +1932,8 @@ function renderAlcohol() {
 
       <button class="btn btn-full" onclick="addAlcohol()">+ Добавить запись</button>
     </div>
+
+    ${renderMilestones(daysSince === null ? daysBetween(state.config.startDate, today) : daysSince, ALCOHOL_MILESTONES)}
 
     <div class="card">
       <div class="card-head">
@@ -1674,7 +2022,7 @@ function renderDatabaseTab(data) {
     const item = calcItem(f, qty);
     return `
       <div class="preview-box">
-        <div class="preview-name">${escapeHtml(f.name)}</div>
+        <div class="preview-name">${escapeHtml(f.name)}${f.custom ? ' <span style="font-size:11px; color:var(--purple)">· свой</span>' : ''}</div>
         <div class="qty-input-row">
           <input type="number" inputmode="decimal" step="0.1" class="input" value="${qty}" id="modalQtyInput" oninput="updateModalQty(this.value)">
           <div class="qty-unit">${escapeHtml(f.unit)}</div>
@@ -1692,21 +2040,102 @@ function renderDatabaseTab(data) {
     `;
   }
 
-  // Group foods by category, in the order defined in FOOD_CATEGORIES
+  // Создание своего продукта
+  if (data.creatingFood) {
+    const cf = data.newFood || { name: '', kcal: '', p: '', f: '', c: '', per: 100, unit: 'г' };
+    return `
+      <div class="preview-box">
+        <div class="preview-name" style="margin-bottom:12px">Новый продукт</div>
+        <div class="field">
+          <label class="field-label">Название</label>
+          <input type="text" class="input" placeholder="Например: Сыр Чеддер"
+            value="${escapeHtml(cf.name)}" oninput="updateNewFood('name', this.value)">
+        </div>
+        <div class="field-grid-2">
+          <div class="field">
+            <label class="field-label">Единица</label>
+            <select class="input" onchange="updateNewFood('unit', this.value)">
+              <option value="г" ${cf.unit==='г'?'selected':''}>г (100 г)</option>
+              <option value="мл" ${cf.unit==='мл'?'selected':''}>мл (100 мл)</option>
+              <option value="шт" ${cf.unit==='шт'?'selected':''}>штука</option>
+              <option value="порция" ${cf.unit==='порция'?'selected':''}>порция</option>
+              <option value="ст.л." ${cf.unit==='ст.л.'?'selected':''}>ст. ложка</option>
+              <option value="ч.л." ${cf.unit==='ч.л.'?'selected':''}>ч. ложка</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">КБЖУ за</label>
+            <input type="number" inputmode="numeric" class="input"
+              value="${cf.per}" onchange="updateNewFood('per', this.value)">
+          </div>
+        </div>
+        <div class="field-grid-2">
+          <div class="field">
+            <label class="field-label">Калории</label>
+            <input type="number" inputmode="numeric" class="input" placeholder="ккал"
+              value="${cf.kcal}" oninput="updateNewFood('kcal', this.value)">
+          </div>
+          <div class="field">
+            <label class="field-label">Белки, г</label>
+            <input type="number" inputmode="decimal" step="0.1" class="input" placeholder="г"
+              value="${cf.p}" oninput="updateNewFood('p', this.value)">
+          </div>
+          <div class="field">
+            <label class="field-label">Жиры, г</label>
+            <input type="number" inputmode="decimal" step="0.1" class="input" placeholder="г"
+              value="${cf.f}" oninput="updateNewFood('f', this.value)">
+          </div>
+          <div class="field">
+            <label class="field-label">Углеводы, г</label>
+            <input type="number" inputmode="decimal" step="0.1" class="input" placeholder="г"
+              value="${cf.c}" oninput="updateNewFood('c', this.value)">
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-full" onclick="saveNewFood()">Сохранить продукт</button>
+      <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="cancelNewFood()">← Отмена</button>
+    `;
+  }
+
+  // Search
+  const search = (data.search || '').toLowerCase().trim();
+  const allFoods = getAllFoods();
+  let filtered = allFoods;
+  if (search) {
+    filtered = allFoods.filter(f => {
+      if (f.name.toLowerCase().includes(search)) return true;
+      for (const m of (f.match || [])) {
+        if (m.includes(search) || search.includes(m)) return true;
+      }
+      return false;
+    });
+  }
+
+  // Group by category
   const byCat = {};
-  for (const f of FOODS) {
+  for (const f of filtered) {
     if (!byCat[f.cat]) byCat[f.cat] = [];
     byCat[f.cat].push(f);
   }
 
+  // Кастомная категория для customFoods
+  const customCat = { id: 'custom', name: 'Мои продукты', emoji: '⭐' };
+  const cats = [customCat, ...FOOD_CATEGORIES];
+
   return `
     ${renderDraft(data)}
-    ${FOOD_CATEGORIES.filter(c => byCat[c.id]).map(c => `
+    <div class="search-row">
+      <input type="text" class="input search-input" placeholder="🔍 Поиск продукта..."
+        value="${escapeHtml(data.search || '')}" oninput="updateSearch(this.value)">
+      <button class="btn btn-sm" onclick="startCreateFood()">+ Свой</button>
+    </div>
+    ${filtered.length === 0 ? `<div class="empty">Ничего не найдено<br><button class="btn btn-sm" style="margin-top:10px" onclick="startCreateFood()">Создать «${escapeHtml(search)}»</button></div>` : ''}
+    ${cats.filter(c => byCat[c.id]).map(c => `
       <div class="food-cat">${c.emoji} ${escapeHtml(c.name)}</div>
       ${byCat[c.id].map(f => `
-        <div class="food-item" onclick="selectFoodFromDb(${FOODS.indexOf(f)})">
+        <div class="food-item" onclick="selectFoodByObj(${escapeHtml(JSON.stringify(f.name))})">
           <div class="food-item-info">
-            <div class="food-item-name">${escapeHtml(f.name)}</div>
+            <div class="food-item-name">${escapeHtml(f.name)}${f.custom ? ' <span style="color:var(--purple); font-size:11px">★</span>' : ''}</div>
             <div class="food-item-meta">${f.kcal} ккал · ${f.p}Б ${f.f}Ж ${f.c}У · за ${f.per} ${f.unit}</div>
           </div>
           <button class="food-item-add">+</button>
@@ -1829,7 +2258,22 @@ window.updateField = function(date, field, value, type) {
   else if (type === 'int') log[field] = value === '' ? null : parseInt(value);
   else log[field] = value;
   saveState();
-  if (field !== 'notes') render();
+  // Точечный апдейт верхних статов без полного render — иначе ввод слетает
+  if (field === 'weight') {
+    const el = document.getElementById('stat-weight-val');
+    const delta = document.getElementById('stat-weight-delta');
+    const cw = getLastWeight();
+    const wd = cw - state.config.startWeight;
+    if (el) el.textContent = cw;
+    if (delta) {
+      delta.textContent = wd === 0 ? '—' : (wd > 0 ? '+' : '') + wd.toFixed(1) + ' кг';
+      delta.className = 'stat-delta ' + (wd < 0 ? 'pos' : wd > 0 ? 'neg' : '');
+    }
+  }
+  if (field === 'pullups') {
+    const el = document.getElementById('stat-pullups-val');
+    if (el) el.textContent = getMaxPullups();
+  }
 };
 
 window.updateConfig = function(key, value) {
@@ -1852,6 +2296,12 @@ window.resetWater = function(date) {
 window.addSteps = function(date, n) {
   const log = getLog(date);
   log.steps = (log.steps || 0) + n;
+  saveState(); render();
+};
+
+window.addSwim = function(date, m) {
+  const log = getLog(date);
+  log.swim = (log.swim || 0) + m;
   saveState(); render();
 };
 
@@ -1910,6 +2360,81 @@ window.selectFoodFromDb = function(idx) {
   const f = FOODS[idx];
   state.ui.modal.data.selectedFood = f;
   state.ui.modal.data.qty = (f.unit === 'г' || f.unit === 'мл') ? 100 : 1;
+  renderModal();
+};
+
+window.selectFoodByObj = function(name) {
+  const all = getAllFoods();
+  const f = all.find(x => x.name === name);
+  if (!f) return;
+  state.ui.modal.data.selectedFood = f;
+  state.ui.modal.data.qty = (f.unit === 'г' || f.unit === 'мл') ? 100 : 1;
+  renderModal();
+};
+
+window.updateSearch = function(val) {
+  state.ui.modal.data.search = val;
+  // Inline update without full re-render to keep focus
+  const root = document.getElementById('modal-root');
+  if (root) {
+    const focused = document.activeElement;
+    const wasFocused = focused && focused.classList.contains('search-input');
+    const cursorPos = wasFocused ? focused.selectionStart : null;
+    renderModal();
+    if (wasFocused) {
+      const newInput = document.querySelector('.search-input');
+      if (newInput) {
+        newInput.focus();
+        if (cursorPos !== null) newInput.setSelectionRange(cursorPos, cursorPos);
+      }
+    }
+  }
+};
+
+window.startCreateFood = function() {
+  state.ui.modal.data.creatingFood = true;
+  const search = state.ui.modal.data.search || '';
+  state.ui.modal.data.newFood = {
+    name: search, kcal: '', p: '', f: '', c: '', per: 100, unit: 'г'
+  };
+  renderModal();
+};
+
+window.updateNewFood = function(field, value) {
+  if (!state.ui.modal.data.newFood) return;
+  state.ui.modal.data.newFood[field] = value;
+};
+
+window.cancelNewFood = function() {
+  state.ui.modal.data.creatingFood = false;
+  state.ui.modal.data.newFood = null;
+  renderModal();
+};
+
+window.saveNewFood = function() {
+  const cf = state.ui.modal.data.newFood;
+  if (!cf || !cf.name || cf.kcal === '') {
+    alert('Заполни хотя бы название и калории');
+    return;
+  }
+  const food = {
+    name: cf.name.trim(),
+    kcal: parseFloat(cf.kcal) || 0,
+    p: parseFloat(cf.p) || 0,
+    f: parseFloat(cf.f) || 0,
+    c: parseFloat(cf.c) || 0,
+    per: parseFloat(cf.per) || 100,
+    unit: cf.unit || 'г',
+    cat: 'custom',
+    match: [cf.name.toLowerCase().trim()]
+  };
+  if (!state.customFoods) state.customFoods = [];
+  state.customFoods.push(food);
+  saveState();
+  state.ui.modal.data.creatingFood = false;
+  state.ui.modal.data.newFood = null;
+  state.ui.modal.data.selectedFood = food;
+  state.ui.modal.data.qty = (food.unit === 'г' || food.unit === 'мл') ? 100 : 1;
   renderModal();
 };
 
