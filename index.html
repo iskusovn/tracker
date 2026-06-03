@@ -1623,9 +1623,10 @@ function renderActivityCard(selected) {
         <div class="act-bar"><div class="act-bar-fill" style="width:${stepsPct}%; background:var(--blue)"></div></div>
         <div class="act-controls">
           <input type="number" inputmode="numeric" class="act-input-inline" placeholder="шаги"
-            value="${steps || ''}" onchange="updateField('${selected}', 'steps', this.value, 'int')">
+            value="${steps || ''}" onchange="setSteps('${selected}', this.value)">
           <button class="act-btn" onclick="addSteps('${selected}', 1000)">+1000</button>
           <button class="act-btn" onclick="addSteps('${selected}', 5000)">+5000</button>
+          <button class="act-btn danger" onclick="resetSteps('${selected}')">↺</button>
         </div>
       </div>
 
@@ -1636,9 +1637,10 @@ function renderActivityCard(selected) {
         </div>
         <div class="act-controls">
           <input type="number" inputmode="numeric" class="act-input-inline" placeholder="метры"
-            value="${swim || ''}" onchange="updateField('${selected}', 'swim', this.value, 'int')">
+            value="${swim || ''}" onchange="setSwim('${selected}', this.value)">
           <button class="act-btn" onclick="addSwim('${selected}', 500)">+ 500 м</button>
           <button class="act-btn" onclick="addSwim('${selected}', 1000)">+ 1 км</button>
+          <button class="act-btn danger" onclick="resetSwim('${selected}')">↺</button>
         </div>
       </div>
 
@@ -1990,11 +1992,11 @@ function renderAddMealModal(data) {
           <div class="food-search-tabs">
             <button class="seg-btn ${tab === 'templates' ? 'active' : ''}" onclick="setModalTab('templates')">Шаблоны</button>
             <button class="seg-btn ${tab === 'database' ? 'active' : ''}" onclick="setModalTab('database')">Из базы</button>
-            <button class="seg-btn ${tab === 'text' ? 'active' : ''}" onclick="setModalTab('text')">Текстом</button>
+            <button class="seg-btn ${tab === 'quick' ? 'active' : ''}" onclick="setModalTab('quick')">Быстро</button>
           </div>
           ${tab === 'templates' ? renderTemplatesTab(data) : ''}
           ${tab === 'database' ? renderDatabaseTab(data) : ''}
-          ${tab === 'text' ? renderTextTab(data) : ''}
+          ${tab === 'quick' ? renderQuickTab(data) : ''}
         </div>
       </div>
     </div>
@@ -2196,58 +2198,61 @@ function renderDraft(data) {
   `;
 }
 
-function renderTextTab(data) {
-  const text = data.text || '';
-  const parsed = data.parsed || [];
+function renderQuickTab(data) {
+  const q = data.quick || { name: '', kcal: '', p: '', f: '', c: '' };
+  const time = data.mealTime || (() => {
+    const n = new Date();
+    return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  })();
   return `
     <div class="tip" style="margin-bottom:14px">
-      <span class="tip-label">Как писать</span>
-      Например: <strong>грудка 200, рис 100, огурец 1</strong>. Распознаются простые формулы "название число" или "число название". КБЖУ посчитаются автоматически.
+      <span class="tip-label">Идея</span>
+      Спроси у ChatGPT КБЖУ блюда (по фото или описанию) — он выдаст цифры. Забей их сюда: одно блюдо = одна запись. Удобно для ресторанной еды.
     </div>
     <div class="field">
       <label class="field-label">Что съел</label>
-      <textarea class="notes" id="freeTextInput" placeholder="грудка 200, рис 100, огурец 1, протеин 1 порция" style="min-height: 96px">${escapeHtml(text)}</textarea>
+      <input type="text" class="input" id="quickName" placeholder="Шницель с картофелем · Суп с лапшой · ..."
+        value="${escapeHtml(q.name)}" oninput="updateQuickField('name', this.value)">
     </div>
-    <button class="btn btn-full" onclick="parseFreeTextNow()">Распознать</button>
-    ${parsed.length > 0 ? `
-      <div style="margin-top:16px">
-        <div class="block-title">Распознано</div>
-        ${parsed.map(p => {
-          if (p.status === 'ok') {
-            return `
-              <div class="parsed-item">
-                <div class="parsed-item-info">
-                  <div class="parsed-item-name">${escapeHtml(p.item.foodName)}</div>
-                  <div class="parsed-item-meta">${p.item.qty} ${p.item.unit} · Б ${p.item.p} Ж ${p.item.f} У ${p.item.c}</div>
-                </div>
-                <div class="parsed-item-kcal">${p.item.kcal} ккал</div>
-              </div>
-            `;
-          } else {
-            return `
-              <div class="parsed-item unknown">
-                <div class="parsed-item-info">
-                  <div class="parsed-item-name">${escapeHtml(p.rawText)}</div>
-                  <div class="parsed-item-meta">Продукт не найден в базе</div>
-                </div>
-                <div class="parsed-item-kcal" style="color:var(--orange)">?</div>
-              </div>
-            `;
-          }
-        }).join('')}
+    <div class="field-grid-2">
+      <div class="field">
+        <label class="field-label">Калории, ккал</label>
+        <input type="number" inputmode="numeric" class="input" id="quickKcal" placeholder="0"
+          value="${q.kcal}" oninput="updateQuickField('kcal', this.value)">
       </div>
-      <div class="field-grid-2" style="margin-top:14px">
-        <div class="field">
-          <label class="field-label">Название</label>
-          <input type="text" class="input" placeholder="Завтрак, Обед..." value="${escapeHtml(data.mealName || '')}" oninput="updateDraftMeta('mealName', this.value)">
-        </div>
-        <div class="field">
-          <label class="field-label">Время</label>
-          <input type="time" class="input" value="${escapeHtml(data.mealTime || '')}" oninput="updateDraftMeta('mealTime', this.value)">
-        </div>
+      <div class="field">
+        <label class="field-label">Время</label>
+        <input type="time" class="input" value="${escapeHtml(time)}"
+          oninput="updateDraftMeta('mealTime', this.value)">
       </div>
-      <button class="btn btn-full" onclick="saveParsedMeal()">Сохранить (распознанные продукты)</button>
-    ` : ''}
+    </div>
+    <div class="field-grid-2">
+      <div class="field">
+        <label class="field-label">Белки, г</label>
+        <input type="number" inputmode="decimal" step="0.1" class="input" placeholder="0"
+          value="${q.p}" oninput="updateQuickField('p', this.value)">
+      </div>
+      <div class="field">
+        <label class="field-label">Жиры, г</label>
+        <input type="number" inputmode="decimal" step="0.1" class="input" placeholder="0"
+          value="${q.f}" oninput="updateQuickField('f', this.value)">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Углеводы, г</label>
+      <input type="number" inputmode="decimal" step="0.1" class="input" placeholder="0"
+        value="${q.c}" oninput="updateQuickField('c', this.value)">
+    </div>
+    <div class="preview-box" id="quickPreview" style="margin-top:14px">
+      <div class="preview-name">${escapeHtml(q.name || 'Запись')}</div>
+      <div class="preview-kcal">${q.kcal || 0} ккал</div>
+      <div class="preview-macros">
+        <span>Б ${q.p || 0} г</span>
+        <span>Ж ${q.f || 0} г</span>
+        <span>У ${q.c || 0} г</span>
+      </div>
+    </div>
+    <button class="btn btn-full" style="margin-top:14px" onclick="saveQuickMeal()">Сохранить</button>
   `;
 }
 
@@ -2319,6 +2324,30 @@ window.addSteps = function(date, n) {
 window.addSwim = function(date, m) {
   const log = getLog(date);
   log.swim = (log.swim || 0) + m;
+  saveState(); render();
+};
+
+window.setSteps = function(date, value) {
+  const log = getLog(date);
+  log.steps = value === '' ? null : parseInt(value);
+  saveState(); render();
+};
+
+window.setSwim = function(date, value) {
+  const log = getLog(date);
+  log.swim = value === '' ? null : parseInt(value);
+  saveState(); render();
+};
+
+window.resetSteps = function(date) {
+  const log = getLog(date);
+  log.steps = null;
+  saveState(); render();
+};
+
+window.resetSwim = function(date) {
+  const log = getLog(date);
+  log.swim = null;
   saveState(); render();
 };
 
@@ -2461,8 +2490,20 @@ window.backToDatabase = function() {
 };
 
 window.updateModalQty = function(val) {
-  state.ui.modal.data.qty = parseFloat(val) || 0;
-  renderModal();
+  const qty = parseFloat(val) || 0;
+  state.ui.modal.data.qty = qty;
+  // Точечный апдейт preview без полной перерисовки модалки (иначе ввод слетает)
+  const f = state.ui.modal.data.selectedFood;
+  if (!f) return;
+  const item = calcItem(f, qty);
+  const previewBox = document.querySelector('.modal-body .preview-box');
+  if (previewBox) {
+    const kcalEl = previewBox.querySelector('.preview-kcal');
+    const macrosEl = previewBox.querySelector('.preview-macros');
+    if (kcalEl) kcalEl.textContent = item.kcal + ' ккал';
+    if (macrosEl) macrosEl.innerHTML =
+      `<span>Б ${item.p} г</span><span>Ж ${item.f} г</span><span>У ${item.c} г</span>`;
+  }
 };
 
 window.addFoodToDraft = function() {
@@ -2502,27 +2543,48 @@ window.saveDraftMeal = function() {
   render();
 };
 
-window.parseFreeTextNow = function() {
-  const input = document.getElementById('freeTextInput');
-  const text = input ? input.value : '';
-  state.ui.modal.data.text = text;
-  state.ui.modal.data.parsed = parseFreeText(text);
-  renderModal();
+window.updateQuickField = function(field, value) {
+  const d = state.ui.modal.data;
+  if (!d.quick) d.quick = { name: '', kcal: '', p: '', f: '', c: '' };
+  d.quick[field] = value;
+  // Точечный апдейт превью без перерисовки всей формы
+  const preview = document.getElementById('quickPreview');
+  if (preview) {
+    const q = d.quick;
+    preview.innerHTML = `
+      <div class="preview-name">${escapeHtml(q.name || 'Запись')}</div>
+      <div class="preview-kcal">${q.kcal || 0} ккал</div>
+      <div class="preview-macros">
+        <span>Б ${q.p || 0} г</span>
+        <span>Ж ${q.f || 0} г</span>
+        <span>У ${q.c || 0} г</span>
+      </div>
+    `;
+  }
 };
 
-window.saveParsedMeal = function() {
+window.saveQuickMeal = function() {
   const d = state.ui.modal.data;
-  const okItems = (d.parsed || []).filter(p => p.status === 'ok').map(p => p.item);
-  if (okItems.length === 0) {
-    alert('Не удалось распознать ни одного продукта');
+  const q = d.quick || {};
+  const kcal = parseFloat(q.kcal) || 0;
+  if (kcal === 0 && !q.p && !q.f && !q.c) {
+    alert('Введи хотя бы калории');
     return;
   }
   const log = getLog(d.date);
   log.meals.push({
     id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-    name: d.mealName || 'Приём пищи',
+    name: q.name || 'Приём пищи',
     time: d.mealTime || '',
-    items: okItems
+    items: [{
+      foodName: q.name || 'Свободный ввод',
+      qty: 1,
+      unit: 'порция',
+      kcal: kcal,
+      p: parseFloat(q.p) || 0,
+      f: parseFloat(q.f) || 0,
+      c: parseFloat(q.c) || 0
+    }]
   });
   saveState();
   closeModal();
@@ -2607,9 +2669,27 @@ window.importData = function() {
     reader.onload = (ev) => {
       try {
         const data = JSON.parse(ev.target.result);
+        const importedStart = data.config && data.config.startDate;
+        const currentStart = state.config.startDate;
+
         if (data.logs) state.logs = data.logs;
         if (data.config) state.config = { ...state.config, ...data.config };
         if (data.habits) state.habits = { smoking: [], alcohol: [], ...data.habits };
+        if (data.customFoods) state.customFoods = data.customFoods;
+
+        // Спрашиваем про дату старта, если она отличается
+        if (importedStart && importedStart !== currentStart) {
+          const today = todayStr();
+          const useToday = confirm(
+            `В импортированных данных дата старта программы: ${importedStart}\n\n` +
+            `OK = начать заново с сегодня (${today}). История сохранится, но день 1 = сегодня.\n` +
+            `Отмена = оставить дату ${importedStart} из импорта.`
+          );
+          if (useToday) {
+            state.config.startDate = today;
+          }
+        }
+
         saveState(); render();
         alert('Данные импортированы.');
       } catch (err) {
